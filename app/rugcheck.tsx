@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const HELIUS = "/api/rpc";
 
-export function RugCheck({ onChecked }: { onChecked?: (mint: string) => void }) {
+export function RugCheck({ onChecked }: { onChecked?: (mint: string, symbol: string) => void }) {
   const [mint, setMint] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -22,11 +22,9 @@ export function RugCheck({ onChecked }: { onChecked?: (mint: string) => void }) 
 
   async function check() {
     setLoading(true);
-    if (onChecked) onChecked(mint);
     setError("");
     setResult(null);
     try {
-      // 1. On-chain mint info (authorities + supply)
       const mintInfo = await rpc("getAccountInfo", [
         mint,
         { encoding: "jsonParsed" },
@@ -35,21 +33,18 @@ export function RugCheck({ onChecked }: { onChecked?: (mint: string) => void }) 
       let mintAuthority = null;
       let freezeAuthority = null;
       let supply = 0;
-      let decimals = 0;
 
       if (mintInfo?.value?.data?.parsed?.info) {
         const info = mintInfo.value.data.parsed.info;
         mintAuthority = info.mintAuthority;
         freezeAuthority = info.freezeAuthority;
         supply = Number(info.supply);
-        decimals = info.decimals;
       } else {
         setError("Not a valid SPL token mint address.");
         setLoading(false);
         return;
       }
 
-      // 2. Top holders concentration
       const largest = await rpc("getTokenLargestAccounts", [mint]);
       let topHolderPct = 0;
       let top10Pct = 0;
@@ -62,7 +57,6 @@ export function RugCheck({ onChecked }: { onChecked?: (mint: string) => void }) 
           100;
       }
 
-      // 3. DexScreener market data
       let liquidity = 0,
         volume24h = 0,
         priceUsd = "?",
@@ -88,7 +82,6 @@ export function RugCheck({ onChecked }: { onChecked?: (mint: string) => void }) 
         }
       } catch {}
 
-      // 4. Risk scoring
       const flags: { label: string; level: string }[] = [];
       if (mintAuthority)
         flags.push({
@@ -133,6 +126,8 @@ export function RugCheck({ onChecked }: { onChecked?: (mint: string) => void }) 
         mintAuthority, freezeAuthority, topHolderPct, top10Pct,
         flags, greens,
       });
+
+      if (onChecked) onChecked(mint, symbol);
     } catch (e: any) {
       setError("Error: " + e.message);
     }
@@ -142,14 +137,9 @@ export function RugCheck({ onChecked }: { onChecked?: (mint: string) => void }) 
   return (
     <div
       style={{
-        marginTop: 24,
-        padding: 24,
-        borderRadius: 16,
-        background: "#161616",
-        width: 380,
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
+        padding: 24, borderRadius: 16, background: "#161616", width: 380,
+        display: "flex", flexDirection: "column", gap: 12,
+        border: "1px solid #222",
       }}
     >
       <div style={{ fontSize: 14, opacity: 0.6 }}>🔍 Rug Check</div>

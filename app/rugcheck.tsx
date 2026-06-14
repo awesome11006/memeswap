@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const HELIUS = "/api/rpc";
 
-export function RugCheck() {
+export function RugCheck({ onChecked }: { onChecked?: (mint: string) => void }) {
   const [mint, setMint] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -22,6 +22,7 @@ export function RugCheck() {
 
   async function check() {
     setLoading(true);
+    if (onChecked) onChecked(mint);
     setError("");
     setResult(null);
     try {

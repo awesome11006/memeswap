@@ -1,8 +1,10 @@
 ﻿"use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { Swap } from "./swap";
 import { RugCheck } from "./rugcheck";
+import { Chart } from "./chart";
 
 const WalletMultiButton = dynamic(
   () =>
@@ -11,6 +13,8 @@ const WalletMultiButton = dynamic(
 );
 
 export default function Home() {
+  const [activeMint, setActiveMint] = useState("");
+
   return (
     <main
       style={{
@@ -22,16 +26,35 @@ export default function Home() {
         background: "#0a0a0a",
         color: "#fff",
         fontFamily: "system-ui, sans-serif",
-        padding: "40px",
+        padding: "32px",
       }}
     >
-      <h1 style={{ fontSize: "2.5rem", fontWeight: 700, marginBottom: 8 }}>
-        MemeSwap
-      </h1>
-      <WalletMultiButton />
-      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center" }}>
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1180,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h1 style={{ fontSize: "1.8rem", fontWeight: 700 }}>MemeSwap</h1>
+        <WalletMultiButton />
+      </div>
+
+      <Chart mint={activeMint} />
+
+      <div
+        style={{
+          display: "flex",
+          gap: 24,
+          flexWrap: "wrap",
+          justifyContent: "center",
+          width: "100%",
+        }}
+      >
         <Swap />
-        <RugCheck />
+        <RugCheck onChecked={setActiveMint} />
       </div>
     </main>
   );
